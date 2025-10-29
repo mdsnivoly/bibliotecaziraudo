@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biblioteca Escolar</title>
+<style>
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #eef5ff;
+  margin: 0; padding: 0;
+}
+header {
+  text-align: center;
+  padding: 15px;
+  background: #2b4c7e;
+  color: white;
+}
+main { padding: 20px; max-width: 900px; margin: auto; }
+.div-box {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 15px;
+}
+button {
+  padding: 8px 12px;
+  margin: 5px 5px 5px 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  color: white;
+}
+button:hover { opacity: 0.92; }
+.btn-aluno { background: #0078D4; }
+.btn-admin { background: #005EA6; }
+.btn-sair { background: #666; }
+.btn-perigo { background: #b30000; }
+input, select {
+  width: 95%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+.msg {
+  padding: 10px; border-radius: 8px; margin-bottom: 10px;
+}
+.msg.ok { background:#e9fbe9; color:#155d15; }
+.msg.err { background:#fdeaea; color:#b30000; }
+.hidden { display: none; }
+.atrasado { color:red; font-weight:bold; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 10px;
+}
+.stat-card {
+  background:#f8f8f8;
+  border-radius:8px;
+  padding:10px;
+  text-align:center;
+  font-size:14px;
+}
+.stat-card strong { font-size:18px; display:block; margin-bottom:4px; }
+.list-row { padding:8px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+.small { font-size:13px; color:#555; }
+.btn-link { background: transparent; color:#0078D4; border: none; padding:6px; cursor:pointer; text-decoration:underline; }
+.table { border: 1px solid #eee; border-radius:6px; overflow:hidden; }
+</style>
+</head>
+<body>
+
+<header><h1>Biblioteca Escolar</h1></header>
+
+<main>
+  <div id="mensagens"></div>
+
+  <!-- MENU PRINCIPAL -->
+  <div id="menuPrincipal" class="div-box">
+    <h2>Bem vindo!</h2>
+    <p>Escolha seu tipo de acesso:</p>
+    <button class="btn-aluno" id="btnSouAluno">Sou Aluno</button>
+    <button class="btn-admin" id="btnSouAdmin">Sou Administrador</button>
+  </div>
+
+  <!-- LOGIN ALUNO -->
+  <div id="loginAlunoDiv" class="div-box hidden">
+    <h2>Login do Aluno</h2>
+    <label>Nome:</label>
+    <input type="text" id="alunoNome" autocomplete="off">
+    <label>Senha:</label>
+    <input type="password" id="alunoSenha" autocomplete="off">
+    <div style="margin-top:8px;">
+      <button class="btn-aluno" id="btnLoginAluno">Entrar</button>
+      <button class="btn-sair" id="btnVoltarMenuFromAluno">Voltar</button>
+    </div>
+  </div>
+
+  <!-- LOGIN ADMIN -->
+  <div id="loginAdminDiv" class="div-box hidden">
+    <h2>Login Administrador</h2>
+    <label>Senha:</label>
+    <input type="password" id="senhaAdmin" autocomplete="off">
+    <div style="margin-top:8px;">
+      <button class="btn-admin" id="btnLoginAdmin">Entrar</button>
+      <button class="btn-sair" id="btnVoltarMenuFromAdmin">Voltar</button>
+    </div>
+  </div>
+
+  <!-- PAINEL ADMIN -->
+  <div id="painelAdmin" class="div-box hidden">
+    <h2>Painel do Administrador</h2>
+
+    <div class="div-box" style="background:#f4f8ff">
+      <h3>Acoes Rapidas</h3>
+      <button class="btn-admin" id="btnPesquisa">Pesquisa</button>
+      <button class="btn-admin" id="btnExportar">Exportar Backup</button>
+      <input type="file" id="importarBackupInput" style="display:none" accept=".json">
+      <button class="btn-admin" id="btnImportar">Importar Backup</button>
+
+      <h3>Informacoes</h3>
+      <ul>
+        <li>Alunos bloqueados por multa nao podem pegar novos livros.</li>
+        <li>Renovacao: +7 dias (se nao houver multa).</li>
+        <li>Historico registra cada emprestimo com data de retirada e devolucao.</li>
+      </ul>
+
+      <div class="stats-grid" style="margin-top:8px;">
+        <div class="stat-card"><strong id="qtdAtrasados">0</strong>Atrasados</div>
+        <div class="stat-card"><strong id="qtdBloqueados">0</strong>Alunos bloqueados</div>
+        <div class="stat-card"><strong id="qtdLivros">0</strong>Livros cadastrados</div>
+        <div class="stat-card"><strong id="qtdAlunos">0</strong>Alunos</div>
+        <div class="stat-card"><strong id="qtdEmprestimos">0</strong>Emprestimos totais</div>
+      </div>
+    </div>
+
+    <h3>Adicionar Livro</h3>
+    <label>Titulo:</label>
+    <input type="text" id="tituloLivro" autocomplete="off">
+    <label>Paginas:</label>
+    <input type="number" id="paginasLivro" min="1">
+    <div style="margin-top:6px;">
+      <button class="btn-admin" id="btnAdicionarLivro">Adicionar</button>
+    </div>
+
+    <h3>Gerenciar Alunos</h3>
+    <label>Nome:</label>
+    <input type="text" id="novoAlunoNome" autocomplete="off">
+    <label>Senha:</label>
+    <input type="password" id="novoAlunoSenha" autocomplete="off">
+    <div style="margin-top:6px;">
+      <button class="btn-admin" id="btnAdicionarAluno">Cadastrar Aluno</button>
+    </div>
+    <div id="listaAlunosAdmin" style="margin-top:10px;"></div>
+
+    <h3>Lista de Livros</h3>
+    <input type="text" id="buscaLivroAdmin" placeholder="Pesquisar livro..." autocomplete="off">
+    <div id="listaLivrosAdmin" style="margin-top:8px;"></div>
+
+    <h3>Relatorio</h3>
+    <div id="relatorioAdmin"></div>
+
+    <div style="margin-top:12px;">
+      <button class="btn-sair" id="btnLogoutAdmin">Sair</button>
+      <button class="btn-perigo" id="btnLimparTudo">Limpar tudo</button>
+    </div>
+  </div>
+
+  <!-- PAINEL ALUNO -->
+  <div id="painelAluno" class="div-box hidden">
+    <h2>Bem vindo, <span id="nomeAlunoSpan"></span>!</h2>
+    <input type="text" id="buscaLivroAluno" placeholder="Pesquisar livro..." autocomplete="off">
+    <div id="listaLivrosAluno" style="margin-top:8px;"></div>
+    <h3>Historico</h3>
+    <div id="historicoAluno" style="margin-top:8px;"></div>
+    <div style="margin-top:12px;">
+      <button class="btn-sair" id="btnLogoutAluno">Sair</button>
+    </div>
+  </div>
+</main>
+
+<script>
+/* Arquivo original enviado pelo usuario foi usado como base. Referencia original: arquivo carregado. :contentReference[oaicite:1]{index=1}
+   Implementacao compatível entre navegadores, sem recursos experimentais.
+*/
+
+const SENHA_ADMIN_FIXA = "admin123";
+const MULTA_POR_HORA = 1; // valor em moeda ficticia por hora de atraso
+let prazoPadraoDias = 7;
+
+let livros = safeParse(localStorage.getItem("livros")) || [];
+let alunos = safeParse(localStorage.getItem("alunos")) || [];
+let historico = safeParse(localStorage.getItem("historico")) || [];
+let alunoAtual = null;
+let adminLogado = false;
+
+function safeParse(raw) {
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    console.warn("JSON parse falhou:", e);
+    return null;
+  }
+}
+
+/* ----- utilitarios ----- */
+function showMessage(text, type = "ok", timeout = 3500) {
+  const mount = document.getElementById("mensagens");
+  const div = document.createElement("div");
+  div.className = `msg ${type === "ok" ? "ok" : "err"}`;
+  div.textContent = text;
+  mount.appendChild(div);
+  setTimeout(() => {
+    if (div.parentNode) div.parentNode.removeChild(div);
+  }, timeout);
+}
+
+function salvarTudo() {
+  localStorage.setItem("livros", JSON.stringify(livros));
+  localStorage.setItem("alunos", JSON.stringify(alunos));
+  localStorage.setItem("historico", JSON.stringify(historico));
+  atualizarEstatisticas();
+}
+
+/* ----- navegação simples ----- */
+function esconderTodos() {
+  const ids = ["menuPrincipal","loginAlunoDiv","loginAdminDiv","painelAdmin","painelAluno"];
+  ids.forEach(id => document.getElementById(id).classList.add("hidden"));
+}
+function mostrarMenu() {
+  esconderTodos();
+  document.getElementById("menuPrincipal").classList.remove("hidden");
+}
+function mostrarLogin(tipo) {
+  esconderTodos();
+  if (tipo === "aluno") document.getElementById("loginAlunoDiv").classList.remove("hidden");
+  else document.getElementById("loginAdminDiv").classList.remove("hidden");
+}
+
+/* ----- autenticação ----- */
+function loginAdmin() {
+  const senha = document.getElementById("senhaAdmin").value || "";
+  if (senha === SENHA_ADMIN_FIXA) {
+    adminLogado = true;
+    esconderTodos();
+    document.getElementById("painelAdmin").classList.remove("hidden");
+    document.getElementById("senhaAdmin").value = "";
+    atualizarEstatisticas();
+    atualizarListasAdmin();
+    showMessage("Administrador logado.", "ok");
+  } else {
+    showMessage("Senha incorreta.", "err");
+  }
+}
+
+function logoutAdmin() {
+  adminLogado = false;
+  showMessage("Administrador saiu.", "ok");
+  mostrarMenu();
+}
+
+function loginAluno() {
+  const nome = (document.getElementById("alunoNome").value || "").trim();
+  const senha = document.getElementById("alunoSenha").value || "";
+  if (!nome || !senha) { showMessage("Preencha nome e senha.", "err"); return; }
+  const matricula = alunos.find(a => a.nome.toLowerCase() === nome.toLowerCase() && a.senha === senha);
+  if (!matricula) {
+    showMessage("Aluno não encontrado ou senha incorreta.", "err");
+    return;
+  }
+  // Verifica bloqueio por multa (simples: se total de multas em aberto > 0 bloqueia)
+  const multas = calcularMultaTotalAluno(matricula.nome);
+  if (multas > 0) {
+    // considerar bloqueio caso haja multas (política simples)
+    showMessage("Aluno possui multa pendente. Procure o administrador.", "err");
+    // Podemos ainda permitir ver histórico mas não emprestar - aqui bloqueamos o empréstimo.
+  }
+  alunoAtual = matricula;
+  esconderTodos();
+  document.getElementById("painelAluno").classList.remove("hidden");
+  document.getElementById("nomeAlunoSpan").textContent = alunoAtual.nome;
+  document.getElementById("alunoNome").value = "";
+  document.getElementById("alunoSenha").value = "";
+  atualizarListaAluno();
+  atualizarHistoricoAluno();
+  showMessage("Login de aluno bem sucedido.", "ok");
+}
+
+function logoutAluno() {
+  alunoAtual = null;
+  showMessage("Aluno saiu.", "ok");
+  mostrarMenu();
+}
+
+/* ----- CRUD Livros / Alunos ----- */
+function adicionarLivro() {
+  const titulo = (document.getElementById("tituloLivro").value || "").trim();
+  const paginasVal = document.getElementById("paginasLivro").value;
+  const paginas = paginasVal ? parseInt(paginasVal, 10) : 0;
+  if (!titulo) { showMessage("Titulo obrigatorio.", "err"); return; }
+  const novo = { id: gerarId("livro"), titulo, paginas: isNaN(paginas) ? 0 : paginas, disponivel: true };
+  livros.push(novo);
+  salvarTudo();
+  document.getElementById("tituloLivro").value = "";
+  document.getElementById("paginasLivro").value = "";
+  showMessage("Livro adicionado.", "ok");
+  atualizarListasAdmin();
+  atualizarListaAluno();
+}
+
+function adicionarAluno() {
+  const nome = (document.getElementById("novoAlunoNome").value || "").trim();
+  const senha = (document.getElementById("novoAlunoSenha").value || "").trim();
+  if (!nome || !senha) { showMessage("Nome e senha obrigatorios.", "err"); return; }
+  if (alunos.some(a => a.nome.toLowerCase() === nome.toLowerCase())) {
+    showMessage("Aluno já cadastrado.", "err");
+    return;
+  }
+  const novo = { id: gerarId("aluno"), nome, senha, bloqueado: false };
+  alunos.push(novo);
+  salvarTudo();
+  document.getElementById("novoAlunoNome").value = "";
+  document.getElementById("novoAlunoSenha").value = "";
+  showMessage("Aluno cadastrado.", "ok");
+  atualizarListasAdmin();
+}
+
+function gerarId(prefix) {
+  return prefix + "_" + Date.now().toString(36) + "_" + Math.floor(Math.random()*1000);
+}
+
+/* ----- listagens e buscas (admin) ----- */
+function atualizarListasAdmin() {
+  // lista alunos
+  const mountA = document.getElementById("listaAlunosAdmin");
+  mountA.innerHTML = "";
+  if (alunos.length === 0) mountA.innerHTML = "<div class='small'>Nenhum aluno cadastrado</div>";
+  alunos.forEach(al => {
+    const row = document.createElement("div");
+    row.className = "list-row";
+    const left = document.createElement("div");
+    left.innerHTML = `<strong>${escapeHtml(al.nome)}</strong><div class="small">ID: ${al.id}</div>`;
+    const right = document.createElement("div");
+    const btnRem = document.createElement("button");
+    btnRem.className = "btn-perigo";
+    btnRem.textContent = "Remover";
+    btnRem.onclick = () => {
+      if (confirm("Remover aluno? Isto nao apagara historico.")) {
+        alunos = alunos.filter(x => x.id !== al.id);
+        salvarTudo();
+        atualizarListasAdmin();
+        showMessage("Aluno removido.", "ok");
+      }
+    };
+    right.appendChild(btnRem);
+    row.appendChild(left);
+    row.appendChild(right);
+    mountA.appendChild(row);
+  });
+
+  // lista livros admin (com busca)
+  const filtro = (document.getElementById("buscaLivroAdmin").value || "").toLowerCase();
+  const mountL = document.getElementById("listaLivrosAdmin");
+  mountL.innerHTML = "";
+  const listaFiltrada = livros.filter(l => l.titulo.toLowerCase().indexOf(filtro) !== -1);
+  if (listaFiltrada.length === 0) mountL.innerHTML = "<div class='small'>Nenhum livro encontrado</div>";
+  listaFiltrada.forEach(l => {
+    const row = document.createElement("div");
+    row.className = "list-row";
+    row.innerHTML = `<div><strong>${escapeHtml(l.titulo)}</strong><div class="small">${l.paginas} paginas — ${l.disponivel ? 'Disponivel' : 'Emprestado'}</div></div>`;
+    const btns = document.createElement("div");
+    const btnExcluir = document.createElement("button");
+    btnExcluir.className = "btn-perigo";
+    btnExcluir.textContent = "Excluir";
+    btnExcluir.onclick = () => {
+      if (confirm("Excluir livro? Historico relacionado permanecera.")) {
+        livros = livros.filter(x => x.id !== l.id);
+        salvarTudo();
+        atualizarListasAdmin();
+        showMessage("Livro excluido.", "ok");
+      }
+    };
+    btns.appendChild(btnExcluir);
+    row.appendChild(btns);
+    mountL.appendChild(row);
+  });
+
+  atualizarEstatisticas();
+}
+
+/* ----- listagens aluno ----- */
+function atualizarListaAluno() {
+  const mount = document.getElementById("listaLivrosAluno");
+  mount.innerHTML = "";
+  const filtro = (document.getElementById("buscaLivroAluno").value || "").toLowerCase();
+  const disponiveis = livros.filter(l => l.titulo.toLowerCase().indexOf(filtro) !== -1);
+  if (disponiveis.length === 0) mount.innerHTML = "<div class='small'>Nenhum livro encontrado</div>";
+  disponiveis.forEach(l => {
+    const row = document.createElement("div");
+    row.className = "list-row";
+    row.innerHTML = `<div><strong>${escapeHtml(l.titulo)}</strong><div class="small">${l.paginas} paginas — ${l.disponivel ? 'Disponivel' : 'Emprestado'}</div></div>`;
+    const right = document.createElement("div");
+    if (l.disponivel) {
+      const btnEmp = document.createElement("button");
+      btnEmp.className = "btn-aluno";
+      btnEmp.textContent = "Pegar emprestado";
+      btnEmp.onclick = () => pegarEmprestado(l.id);
+      right.appendChild(btnEmp);
+    } else {
+      const btnInfo = document.createElement("button");
+      btnInfo.className = "btn-link";
+      btnInfo.textContent = "Ver situação";
+      btnInfo.onclick = () => showInfoLivro(l.id);
+      right.appendChild(btnInfo);
+    }
+    row.appendChild(right);
+    mount.appendChild(row);
+  });
+  atualizarEstatisticas();
+}
+
+function showInfoLivro(livroId) {
+  const l = livros.find(x => x.id === livroId);
+  if (!l) { showMessage("Livro nao encontrado", "err"); return; }
+  // procura ultimo emprestimo deste livro
+  const emprestimo = historico.slice().reverse().find(h => h.livroId === livroId && !h.dataDevolucao);
+  if (!emprestimo) {
+    showMessage("Livro disponivel.", "ok");
+    return;
+  }
+  const msg = `Emprestado por ${emprestimo.alunoNome} desde ${(new Date(emprestimo.dataRetirada)).toLocaleString()}`;
+  showMessage(msg, "err", 6000);
+}
+
+/* ----- emprestimo/devolucao ----- */
+function pegarEmprestado(livroId) {
+  if (!alunoAtual) { showMessage("Faça login como aluno para pegar emprestado.", "err"); return; }
+  // verifica multas
+  const multa = calcularMultaTotalAluno(alunoAtual.nome);
+  if (multa > 0) { showMessage("Você tem multa pendente. Procure o administrador.", "err"); return; }
+  const livro = livros.find(l => l.id === livroId);
+  if (!livro || !livro.disponivel) { showMessage("Livro nao disponivel.", "err"); return; }
+  livro.disponivel = false;
+  const retirada = new Date();
+  const registro = {
+    id: gerarId("hist"),
+    livroId: livro.id,
+    titulo: livro.titulo,
+    alunoId: alunoAtual.id,
+    alunoNome: alunoAtual.nome,
+    dataRetirada: retirada.toISOString(),
+    dataDevolucao: null
+  };
+  historico.push(registro);
+  salvarTudo();
+  showMessage("Livro emprestado com sucesso.", "ok");
+  atualizarListaAluno();
+  atualizarHistoricoAluno();
+}
+
+function devolverLivro(histId) {
+  const reg = historico.find(h => h.id === histId);
+  if (!reg || reg.dataDevolucao) { showMessage("Registro nao encontrado ou já devolvido.", "err"); return; }
+  reg.dataDevolucao = new Date().toISOString();
+  // marcar livro como disponivel
+  const livro = livros.find(l => l.id === reg.livroId);
+  if (livro) livro.disponivel = true;
+  salvarTudo();
+  showMessage("Livro devolvido. Obrigado!", "ok");
+  atualizarListaAluno();
+  atualizarHistoricoAluno();
+}
+
+/* ----- historico aluno ----- */
+function atualizarHistoricoAluno() {
+  const mount = document.getElementById("historicoAluno");
+  mount.innerHTML = "";
+  if (!alunoAtual) { mount.innerHTML = "<div class='small'>Faça login para ver histórico</div>"; return; }
+  const lista = historico.filter(h => h.alunoId === alunoAtual.id).sort((a,b) => new Date(b.dataRetirada) - new Date(a.dataRetirada));
+  if (lista.length === 0) { mount.innerHTML = "<div class='small'>Nenhum emprestimo</div>"; return; }
+  lista.forEach(h => {
+    const row = document.createElement("div");
+    row.className = "list-row";
+    const left = document.createElement("div");
+    left.innerHTML = `<strong>${escapeHtml(h.titulo)}</strong><div class="small">Retirado: ${(new Date(h.dataRetirada)).toLocaleString()}</div>`;
+    if (h.dataDevolucao) left.innerHTML += `<div class="small">Devolvido: ${(new Date(h.dataDevolucao)).toLocaleString()}</div>`;
+    else {
+      const due = new Date(h.dataRetirada);
+      due.setDate(due.getDate() + prazoPadraoDias);
+      left.innerHTML += `<div class="small">Vencimento: ${due.toLocaleString()}</div>`;
+      if (new Date() > due) left.innerHTML += `<div class="atrasado small">ATRASADO</div>`;
+    }
+    const right = document.createElement("div");
+    if (!h.dataDevolucao) {
+      const btnDev = document.createElement("button");
+      btnDev.className = "btn-sair";
+      btnDev.textContent = "Devolver";
+      btnDev.onclick = () => {
+        if (confirm("Confirmar devolução?")) devolverLivro(h.id);
+      };
+      right.appendChild(btnDev);
+    } else {
+      right.textContent = "";
+    }
+    row.appendChild(left);
+    row.appendChild(right);
+    mount.appendChild(row);
+  });
+}
+
+/* ----- multas e estatisticas ----- */
+function calcularMultaTotalAluno(nomeAluno) {
+  // Somar horas de atraso para emprestimos nao devolvidos que ja passaram do prazo
+  let total = 0;
+  const now = new Date();
+  historico.forEach(h => {
+    if (h.alunoNome === nomeAluno && !h.dataDevolucao) {
+      const retir = new Date(h.dataRetirada);
+      const venc = new Date(retir);
+      venc.setDate(venc.getDate() + prazoPadraoDias);
+      if (now > venc) {
+        const horas = Math.floor((now - venc) / (1000 * 60 * 60));
+        total += horas * MULTA_POR_HORA;
+      }
+    }
+  });
+  return total;
+}
+
+function atualizarEstatisticas() {
+  // atrasados: emprestimos em aberto com vencimento passado
+  const now = new Date();
+  const atrasados = historico.filter(h => !h.dataDevolucao && (new Date(h.dataRetirada).getTime() + prazoPadraoDias*24*60*60*1000) < now.getTime()).length;
+  document.getElementById("qtdAtrasados").textContent = atrasados;
+  const bloqueados = alunos.filter(a => calcularMultaTotalAluno(a.nome) > 0).length;
+  document.getElementById("qtdBloqueados").textContent = bloqueados;
+  document.getElementById("qtdLivros").textContent = livros.length;
+  document.getElementById("qtdAlunos").textContent = alunos.length;
+  document.getElementById("qtdEmprestimos").textContent = historico.length;
+}
+
+/* ----- backup / import / export ----- */
+function exportarBackup() {
+  const dump = { livros, alunos, historico, geradoEm: (new Date()).toISOString() };
+  const texto = JSON.stringify(dump, null, 2);
+  const blob = new Blob([texto], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `backup_biblioteca_${(new Date()).toISOString().slice(0,19).replace(/[:T]/g,"-")}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showMessage("Backup exportado.", "ok");
+}
+
+function importarBackup(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.livros && data.alunos && data.historico) {
+        livros = data.livros;
+        alunos = data.alunos;
+        historico = data.historico;
+        salvarTudo();
+        atualizarListasAdmin();
+        showMessage("Backup importado com sucesso.", "ok");
+      } else {
+        showMessage("Arquivo de backup inválido.", "err");
+      }
+    } catch (err) {
+      showMessage("Erro ao ler arquivo: " + err.message, "err");
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ----- utilitarios auxiliares ----- */
+function filtrarLivrosAdmin() { atualizarListasAdmin(); }
+
+function limparTudo() {
+  if (!confirm("Apagar todos os dados (livros, alunos, historico)?")) return;
+  livros = [];
+  alunos = [];
+  historico = [];
+  salvarTudo();
+  atualizarListasAdmin();
+  showMessage("Dados apagados.", "ok");
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
+}
+
+/* ----- eventos UI ----- */
+document.getElementById("btnSouAluno").addEventListener("click", () => mostrarLogin('aluno'));
+document.getElementById("btnSouAdmin").addEventListener("click", () => mostrarLogin('admin'));
+document.getElementById("btnVoltarMenuFromAluno").addEventListener("click", mostrarMenu);
+document.getElementById("btnVoltarMenuFromAdmin").addEventListener("click", mostrarMenu);
+document.getElementById("btnLoginAdmin").addEventListener("click", loginAdmin);
+document.getElementById("btnLoginAluno").addEventListener("click", loginAluno);
+document.getElementById("btnAdicionarLivro").addEventListener("click", adicionarLivro);
+document.getElementById("btnAdicionarAluno").addEventListener("click", adicionarAluno);
+document.getElementById("buscaLivroAdmin").addEventListener("input", filtrarLivrosAdmin);
+document.getElementById("btnExportar").addEventListener("click", exportarBackup);
+document.getElementById("btnImportar").addEventListener("click", () => document.getElementById("importarBackupInput").click());
+document.getElementById("importarBackupInput").addEventListener("change", (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) importarBackup(f);
+  e.target.value = "";
+});
+document.getElementById("btnLogoutAdmin").addEventListener("click", logoutAdmin);
+document.getElementById("btnLimparTudo").addEventListener("click", limparTudo);
+document.getElementById("btnLogoutAluno").addEventListener("click", logoutAluno);
+document.getElementById("btnPesquisa").addEventListener("click", () => {
+  // foco simples para a pesquisa admin
+  document.getElementById("buscaLivroAdmin").focus();
+});
+document.getElementById("buscaLivroAluno").addEventListener("input", atualizarListaAluno);
+
+/* ----- inicializacao ----- */
+atualizarEstatisticas();
+atualizarListasAdmin();
+mostrarMenu();
+
+</script>
+</body>
+</html>
